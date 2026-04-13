@@ -454,17 +454,17 @@ export default function App() {
               <Table>
                 <TableHeader className="bg-slate-50 sticky top-0 z-10">
                   <TableRow>
-                    <TableHead>Negeri</TableHead>
-                    <TableHead>Nama Program</TableHead>
-                    <TableHead>Lokasi</TableHead>
-                    <TableHead>Peserta</TableHead>
-                    <TableHead>Tarikh</TableHead>
-                    <TableHead className="text-right">OS21000 (RM)</TableHead>
-                    <TableHead className="text-right">OS24000 (RM)</TableHead>
-                    <TableHead className="text-right">OS29000 (RM)</TableHead>
-                    <TableHead className="text-right">OS42000 (RM)</TableHead>
-                    <TableHead className="text-right">Jumlah (RM)</TableHead>
-                    <TableHead className="text-center">Tindakan</TableHead>
+                    <TableHead className="text-sm font-semibold">Negeri</TableHead>
+                    <TableHead className="text-sm font-semibold">Nama Program</TableHead>
+                    <TableHead className="text-sm font-semibold">Lokasi</TableHead>
+                    <TableHead className="text-sm font-semibold text-center">Peserta</TableHead>
+                    <TableHead className="text-sm font-semibold">Tarikh</TableHead>
+                    <TableHead className="text-sm font-semibold text-right">OS21000 (RM)</TableHead>
+                    <TableHead className="text-sm font-semibold text-right">OS24000 (RM)</TableHead>
+                    <TableHead className="text-sm font-semibold text-right">OS29000 (RM)</TableHead>
+                    <TableHead className="text-sm font-semibold text-right">OS42000 (RM)</TableHead>
+                    <TableHead className="text-sm font-semibold text-right">Jumlah (RM)</TableHead>
+                    <TableHead className="text-sm font-semibold text-center">Tindakan</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -478,17 +478,17 @@ export default function App() {
                     filteredPrograms.map((p) => (
                       <TableRow key={p.id} className="hover:bg-slate-50/50">
                         <TableCell>
-                          <Badge variant="secondary" className="font-medium">{p.negeri}</Badge>
+                          <Badge variant="secondary" className="font-medium text-xs">{p.negeri}</Badge>
                         </TableCell>
-                        <TableCell className="font-medium">{p.namaProgram}</TableCell>
-                        <TableCell className="text-xs">{p.lokasi}</TableCell>
-                        <TableCell className="text-center">{p.bilanganPeserta}</TableCell>
-                        <TableCell className="text-xs text-slate-500">{formatDate(p.tarikhMula)}</TableCell>
-                        <TableCell className="text-right text-xs font-mono">{Number(p.gunaOs21000 || 0).toLocaleString()}</TableCell>
-                        <TableCell className="text-right text-xs font-mono">{Number(p.gunaOs24000 || 0).toLocaleString()}</TableCell>
-                        <TableCell className="text-right text-xs font-mono">{Number(p.gunaOs29000 || 0).toLocaleString()}</TableCell>
-                        <TableCell className="text-right text-xs font-mono">{Number(p.gunaOs42000 || 0).toLocaleString()}</TableCell>
-                        <TableCell className="text-right font-mono font-bold text-blue-600">
+                        <TableCell className="text-sm font-medium text-slate-700">{p.namaProgram}</TableCell>
+                        <TableCell className="text-sm text-slate-600">{p.lokasi}</TableCell>
+                        <TableCell className="text-sm text-center text-slate-600">{p.bilanganPeserta}</TableCell>
+                        <TableCell className="text-sm text-slate-500">{formatDate(p.tarikhMula)}</TableCell>
+                        <TableCell className="text-right text-sm text-slate-600">{Number(p.gunaOs21000 || 0).toLocaleString()}</TableCell>
+                        <TableCell className="text-right text-sm text-slate-600">{Number(p.gunaOs24000 || 0).toLocaleString()}</TableCell>
+                        <TableCell className="text-right text-sm text-slate-600">{Number(p.gunaOs29000 || 0).toLocaleString()}</TableCell>
+                        <TableCell className="text-right text-sm text-slate-600">{Number(p.gunaOs42000 || 0).toLocaleString()}</TableCell>
+                        <TableCell className="text-right text-sm font-bold text-blue-600">
                           {(Number(p.gunaOs21000 || 0) + Number(p.gunaOs24000 || 0) + Number(p.gunaOs29000 || 0) + Number(p.gunaOs42000 || 0)).toLocaleString()}
                         </TableCell>
                         <TableCell className="text-center">
