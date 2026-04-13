@@ -98,13 +98,67 @@ export default function App() {
       console.log("Data received:", data);
 
       if (Array.isArray(data)) {
-        setPrograms(data);
+        console.log("Raw data from GAS:", data);
+        
+        // Helper to clean numeric strings (remove RM, commas, spaces)
+        const cleanNum = (val: any) => {
+          if (val === undefined || val === null || val === "") return 0;
+          if (typeof val === "number") return val;
+          const cleaned = String(val).replace(/RM/gi, "").replace(/,/g, "").trim();
+          const num = parseFloat(cleaned);
+          return isNaN(num) ? 0 : num;
+        };
+
+        // Map data with extremely robust key matching
+        const mappedData = data
+          .filter(item => item && typeof item === "object")
+          .map((item, index) => {
+            const normalized: any = {};
+            Object.keys(item).forEach(key => {
+              const normalizedKey = key.toLowerCase().replace(/[\s_]/g, "");
+              normalized[normalizedKey] = item[key];
+            });
+
+            const getVal = (search: string, fallback: any = "") => {
+              const searchKey = search.toLowerCase().replace(/[\s_]/g, "");
+              // Try exact match first
+              if (normalized[searchKey] !== undefined) return normalized[searchKey];
+              // Try partial match
+              const key = Object.keys(normalized).find(k => k.includes(searchKey));
+              return key !== undefined ? normalized[key] : fallback;
+            };
+
+            return {
+              ...item,
+              id: getVal("id") || `row-${index}`,
+              negeri: getVal("negeri"),
+              namaProgram: getVal("namaprogram") || getVal("program"),
+              tarikhMula: getVal("tarikhmula") || getVal("tarikh"),
+              tarikhTamat: getVal("tarikhtamat"),
+              lokasi: getVal("lokasi"),
+              bilanganPeserta: cleanNum(getVal("peserta")),
+              gunaOs21000: cleanNum(getVal("21000")),
+              gunaOs24000: cleanNum(getVal("24000")),
+              gunaOs29000: cleanNum(getVal("29000")),
+              gunaOs42000: cleanNum(getVal("42000")),
+              impak: getVal("impak"),
+              cadangan: getVal("cadangan"),
+              pautanGambar: getVal("pautan"),
+            };
+          });
+        
+        if (mappedData.length === 0) {
+          toast.info("Tiada data ditemui dalam Google Sheets.");
+        } else {
+          toast.success(`Berjaya memuatkan ${mappedData.length} laporan.`);
+        }
+        setPrograms(mappedData);
       } else if (data && data.status === "error") {
         toast.error(`Ralat GAS: ${data.message}`);
       }
     } catch (error) {
       console.error("Fetch error:", error);
-      toast.error("Gagal berhubung dengan Google Sheets.");
+      toast.error(`Gagal berhubung dengan Google Sheets: ${error instanceof Error ? error.message : 'Ralat tidak diketahui'}`);
     } finally {
       setLoading(false);
     }
@@ -144,7 +198,8 @@ export default function App() {
       });
       setTimeout(fetchPrograms, 3000);
     } catch (error) {
-      toast.error("Gagal menghantar laporan");
+      console.error("Submit error:", error);
+      toast.error(`Gagal menghantar laporan: ${error instanceof Error ? error.message : 'Ralat tidak diketahui'}`);
     } finally {
       setLoading(false);
     }
@@ -183,16 +238,16 @@ export default function App() {
     
     // Financial Table
     const financialData = [
-      ["OS21000", `RM ${program.gunaOs21000.toLocaleString()}`],
-      ["OS24000", `RM ${program.gunaOs24000.toLocaleString()}`],
-      ["OS29000", `RM ${program.gunaOs29000.toLocaleString()}`],
-      ["OS42000", `RM ${program.gunaOs42000.toLocaleString()}`],
-      ["JUMLAH KESELURUHAN", `RM ${(Number(program.gunaOs21000) + Number(program.gunaOs24000) + Number(program.gunaOs29000) + Number(program.gunaOs42000)).toLocaleString()}`],
+      ["OS21000", program.gunaOs21000.toLocaleString()],
+      ["OS24000", program.gunaOs24000.toLocaleString()],
+      ["OS29000", program.gunaOs29000.toLocaleString()],
+      ["OS42000", program.gunaOs42000.toLocaleString()],
+      ["JUMLAH KESELURUHAN", (Number(program.gunaOs21000) + Number(program.gunaOs24000) + Number(program.gunaOs29000) + Number(program.gunaOs42000)).toLocaleString()],
     ];
     
     autoTable(doc, {
       startY: (doc as any).lastAutoTable.finalY + 10,
-      head: [["Objek Sebagai (OS)", "Jumlah Perbelanjaan"]],
+      head: [["Objek Sebagai (OS)", "Jumlah Perbelanjaan (RM)"]],
       body: financialData,
       theme: 'grid',
       headStyles: { fillColor: [16, 185, 129] }
@@ -230,6 +285,17 @@ export default function App() {
   const totalSpent = useMemo(() => {
     return osAnalysis.reduce((acc, curr) => acc + curr.value, 0);
   }, [osAnalysis]);
+
+  const formatDate = (dateStr: any) => {
+    if (!dateStr) return "-";
+    try {
+      const date = new Date(dateStr);
+      if (isNaN(date.getTime())) return String(dateStr);
+      return date.toLocaleDateString('ms-MY', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    } catch {
+      return String(dateStr);
+    }
+  };
 
   if (loading && programs.length === 0) {
     return (
@@ -390,35 +456,55 @@ export default function App() {
                   <TableRow>
                     <TableHead>Negeri</TableHead>
                     <TableHead>Nama Program</TableHead>
+                    <TableHead>Lokasi</TableHead>
+                    <TableHead>Peserta</TableHead>
                     <TableHead>Tarikh</TableHead>
-                    <TableHead className="text-right">Jumlah Guna</TableHead>
+                    <TableHead className="text-right">OS21000 (RM)</TableHead>
+                    <TableHead className="text-right">OS24000 (RM)</TableHead>
+                    <TableHead className="text-right">OS29000 (RM)</TableHead>
+                    <TableHead className="text-right">OS42000 (RM)</TableHead>
+                    <TableHead className="text-right">Jumlah (RM)</TableHead>
                     <TableHead className="text-center">Tindakan</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredPrograms.map((p) => (
-                    <TableRow key={p.id} className="hover:bg-slate-50/50">
-                      <TableCell>
-                        <Badge variant="secondary" className="font-medium">{p.negeri}</Badge>
-                      </TableCell>
-                      <TableCell className="font-medium">{p.namaProgram}</TableCell>
-                      <TableCell className="text-xs text-slate-500">{p.tarikhMula}</TableCell>
-                      <TableCell className="text-right font-mono font-bold text-blue-600">
-                        RM {(Number(p.gunaOs21000) + Number(p.gunaOs24000) + Number(p.gunaOs29000) + Number(p.gunaOs42000)).toLocaleString()}
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="text-blue-600 hover:bg-blue-50 gap-2"
-                          onClick={() => generatePDF(p)}
-                        >
-                          <Download size={14} />
-                          PDF
-                        </Button>
+                  {filteredPrograms.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={11} className="h-32 text-center text-slate-400">
+                        Tiada data laporan ditemui.
                       </TableCell>
                     </TableRow>
-                  ))}
+                  ) : (
+                    filteredPrograms.map((p) => (
+                      <TableRow key={p.id} className="hover:bg-slate-50/50">
+                        <TableCell>
+                          <Badge variant="secondary" className="font-medium">{p.negeri}</Badge>
+                        </TableCell>
+                        <TableCell className="font-medium">{p.namaProgram}</TableCell>
+                        <TableCell className="text-xs">{p.lokasi}</TableCell>
+                        <TableCell className="text-center">{p.bilanganPeserta}</TableCell>
+                        <TableCell className="text-xs text-slate-500">{formatDate(p.tarikhMula)}</TableCell>
+                        <TableCell className="text-right text-xs font-mono">{Number(p.gunaOs21000 || 0).toLocaleString()}</TableCell>
+                        <TableCell className="text-right text-xs font-mono">{Number(p.gunaOs24000 || 0).toLocaleString()}</TableCell>
+                        <TableCell className="text-right text-xs font-mono">{Number(p.gunaOs29000 || 0).toLocaleString()}</TableCell>
+                        <TableCell className="text-right text-xs font-mono">{Number(p.gunaOs42000 || 0).toLocaleString()}</TableCell>
+                        <TableCell className="text-right font-mono font-bold text-blue-600">
+                          {(Number(p.gunaOs21000 || 0) + Number(p.gunaOs24000 || 0) + Number(p.gunaOs29000 || 0) + Number(p.gunaOs42000 || 0)).toLocaleString()}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="text-blue-600 hover:bg-blue-50 gap-2"
+                            onClick={() => generatePDF(p)}
+                          >
+                            <Download size={14} />
+                            PDF
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
                 </TableBody>
               </Table>
             </ScrollArea>
@@ -441,7 +527,7 @@ export default function App() {
 
       {/* Form Modal */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-[900px] lg:max-w-[1100px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Borang Pelaporan Program & Waran</DialogTitle>
             <DialogDescription>
