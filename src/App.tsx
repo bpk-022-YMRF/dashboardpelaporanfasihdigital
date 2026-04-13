@@ -208,19 +208,24 @@ export default function App() {
   const generatePDF = (program: ProgramData) => {
     const doc = new jsPDF();
     
+    // Logo Jata Negara
+    const logoUrl = "https://upload.wikimedia.org/wikipedia/commons/thumb/2/26/Coat_of_arms_of_Malaysia.svg/500px-Coat_of_arms_of_Malaysia.svg.png";
+    doc.addImage(logoUrl, 'PNG', 90, 10, 30, 25);
+
     // Header
-    doc.setFontSize(18);
-    doc.text("LAPORAN PELAKSANAAN PROGRAM", 105, 20, { align: "center" });
-    doc.setFontSize(12);
-    doc.text("Sistem Pelaporan Digital Waran 2026", 105, 28, { align: "center" });
+    doc.setFontSize(14);
+    doc.setFont("helvetica", "bold");
+    const title = "LAPORAN PELAKSANAAN BENGKEL KERJA LATIHAN KOMPETENSI FASIH DIGITAL TAHUN 2026";
+    const splitTitle = doc.splitTextToSize(title, 160);
+    doc.text(splitTitle, 105, 45, { align: "center" });
     
-    doc.line(20, 35, 190, 35);
+    doc.line(20, 55, 190, 55);
     
     // Content
     const data = [
       ["Negeri", program.negeri],
       ["Nama Program", program.namaProgram],
-      ["Tarikh", `${program.tarikhMula} hingga ${program.tarikhTamat}`],
+      ["Tarikh", `${formatDate(program.tarikhMula)} hingga ${formatDate(program.tarikhTamat)}`],
       ["Lokasi", program.lokasi],
       ["Bilangan Peserta", program.bilanganPeserta.toString()],
       ["Impak/Output", program.impak],
@@ -229,20 +234,22 @@ export default function App() {
     ];
     
     autoTable(doc, {
-      startY: 45,
+      startY: 65,
       head: [["Perkara", "Butiran"]],
       body: data,
       theme: 'striped',
-      headStyles: { fillColor: [59, 130, 246] }
+      headStyles: { fillColor: [59, 130, 246] },
+      styles: { fontSize: 10 }
     });
     
     // Financial Table
+    const total = Number(program.gunaOs21000) + Number(program.gunaOs24000) + Number(program.gunaOs29000) + Number(program.gunaOs42000);
     const financialData = [
       ["OS21000", program.gunaOs21000.toLocaleString()],
       ["OS24000", program.gunaOs24000.toLocaleString()],
       ["OS29000", program.gunaOs29000.toLocaleString()],
       ["OS42000", program.gunaOs42000.toLocaleString()],
-      ["JUMLAH KESELURUHAN", (Number(program.gunaOs21000) + Number(program.gunaOs24000) + Number(program.gunaOs29000) + Number(program.gunaOs42000)).toLocaleString()],
+      ["JUMLAH KESELURUHAN", total.toLocaleString()],
     ];
     
     autoTable(doc, {
@@ -250,7 +257,13 @@ export default function App() {
       head: [["Objek Sebagai (OS)", "Jumlah Perbelanjaan (RM)"]],
       body: financialData,
       theme: 'grid',
-      headStyles: { fillColor: [16, 185, 129] }
+      headStyles: { fillColor: [16, 185, 129] },
+      styles: { fontSize: 10 },
+      didParseCell: function(data) {
+        if (data.row.index === 4) {
+          data.cell.styles.fontStyle = 'bold';
+        }
+      }
     });
     
     doc.save(`Laporan_${program.namaProgram}_${program.negeri}.pdf`);
