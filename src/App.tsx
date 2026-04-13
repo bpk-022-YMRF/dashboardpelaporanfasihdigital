@@ -203,8 +203,8 @@ export default function App() {
 
   const filteredPrograms = useMemo(() => {
     return programs.filter(p => {
-      const matchesSearch = p.namaProgram.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                           p.negeri.toLowerCase().includes(searchQuery.toLowerCase());
+      const matchesSearch = (p.namaProgram?.toLowerCase() || "").includes(searchQuery.toLowerCase()) || 
+                           (p.negeri?.toLowerCase() || "").includes(searchQuery.toLowerCase());
       const matchesNegeri = filterNegeri === "all" || p.negeri === filterNegeri;
       return matchesSearch && matchesNegeri;
     });
