@@ -539,8 +539,14 @@ export default function App() {
       </main>
 
       {/* Form Modal */}
-      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="sm:max-w-[900px] lg:max-w-[1100px] max-h-[90vh] overflow-y-auto">
+      <Dialog 
+        open={isModalOpen} 
+        onOpenChange={(open) => {
+          console.log("Modal state changed:", open);
+          setIsModalOpen(open);
+        }}
+      >
+        <DialogContent className="max-w-[95vw] md:max-w-[900px] lg:max-w-[1100px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Borang Pelaporan Program & Waran</DialogTitle>
             <DialogDescription>
