@@ -57,7 +57,7 @@ import { ProgramData, ProgramUpdate } from "./types";
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
 
 // GANTIKAN URL INI DENGAN URL DARI GOOGLE APPS SCRIPT ANDA
-const GAS_URL = "https://script.google.com/macros/s/AKfycbwKhfzJASz_FgrvVlLAytCR8LrnWYDJoYRy4JakmAq469GsiU8kltcFrkB4tlnb9M7b/exec";
+const GAS_URL = "https://script.google.com/macros/s/AKfycbwXVJh3MR3cXh12UOG8PWxZgfqCXLASUvb-P8p2SBUj_UTXztGGpgffQTTLOK1q0_Ze/exec";
 
 export default function App() {
   const [programs, setPrograms] = useState<ProgramData[]>([]);
