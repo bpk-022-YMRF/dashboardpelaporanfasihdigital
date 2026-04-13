@@ -21,7 +21,8 @@ import {
   Users,
   ExternalLink,
   ArrowUpRight,
-  ArrowDownRight
+  ArrowDownRight,
+  RefreshCw
 } from "lucide-react";
 import { 
   BarChart, 
@@ -77,14 +78,21 @@ export default function App() {
       const res = await fetch(`${GAS_URL}?t=${new Date().getTime()}`);
       const data = await res.json();
       
+      console.log("Data received:", data);
+
       if (Array.isArray(data)) {
         setPrograms(data);
-      } else if (data.status === "error") {
-        toast.error(data.message);
+        if (data.length === 0) {
+          toast.info("Sambungan berjaya, tetapi tiada rekod dijumpai dalam Google Sheets.");
+        }
+      } else if (data && data.status === "error") {
+        toast.error(`Ralat GAS: ${data.message}`);
+      } else {
+        toast.error("Format data tidak sah diterima dari Google Sheets.");
       }
     } catch (error) {
       console.error("Fetch error:", error);
-      toast.error("Gagal memuatkan data dari Google Sheets. Sila pastikan Web App anda di-deploy dengan akses 'Anyone'.");
+      toast.error("Gagal berhubung dengan Google Sheets. Sila pastikan Web App GAS anda telah di-deploy dengan akses 'Anyone'.");
     } finally {
       setLoading(false);
     }
@@ -185,6 +193,18 @@ export default function App() {
             </div>
           </div>
           <div className="flex items-center gap-3">
+            <Button 
+              variant="outline" 
+              size="icon" 
+              onClick={() => {
+                setLoading(true);
+                fetchPrograms();
+              }}
+              className="bg-white hover:bg-slate-50"
+              title="Muat semula data"
+            >
+              <RefreshCw size={18} className={loading ? "animate-spin" : ""} />
+            </Button>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
               <Input 
@@ -234,7 +254,7 @@ export default function App() {
             title="Program Aktif" 
             value={programs.length.toString()} 
             icon={<CheckCircle2 className="text-indigo-600" />}
-            trend="17 program berdaftar"
+            trend={`${programs.length} program berdaftar`}
           />
         </div>
 
