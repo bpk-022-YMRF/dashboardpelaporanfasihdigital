@@ -56,6 +56,9 @@ import { ProgramData, ProgramUpdate } from "./types";
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
 
+// GANTIKAN URL INI DENGAN URL DARI GOOGLE APPS SCRIPT ANDA
+const GAS_URL = "https://script.google.com/macros/s/AKfycbwKhfzJASz_FgrvVlLAytCR8LrnWYDJoYRy4JakmAq469GsiU8kltcFrkB4tlnb9M7b/exec";
+
 export default function App() {
   const [programs, setPrograms] = useState<ProgramData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -70,11 +73,18 @@ export default function App() {
 
   const fetchPrograms = async () => {
     try {
-      const res = await fetch("/api/programs");
+      // Tambah timestamp untuk elakkan caching
+      const res = await fetch(`${GAS_URL}?t=${new Date().getTime()}`);
       const data = await res.json();
-      setPrograms(data);
+      
+      if (Array.isArray(data)) {
+        setPrograms(data);
+      } else if (data.status === "error") {
+        toast.error(data.message);
+      }
     } catch (error) {
-      toast.error("Gagal memuatkan data program");
+      console.error("Fetch error:", error);
+      toast.error("Gagal memuatkan data dari Google Sheets. Sila pastikan Web App anda di-deploy dengan akses 'Anyone'.");
     } finally {
       setLoading(false);
     }
@@ -82,17 +92,24 @@ export default function App() {
 
   const handleUpdate = async (id: string, update: ProgramUpdate) => {
     try {
-      const res = await fetch(`/api/programs/${id}`, {
+      // Google Apps Script memerlukan data dihantar sebagai string dalam body untuk doPost
+      await fetch(GAS_URL, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(update),
+        mode: "no-cors", // Penting untuk mengelakkan ralat CORS pada Google Apps Script
+        headers: {
+          "Content-Type": "text/plain", // GAS lebih stabil dengan text/plain untuk JSON string
+        },
+        body: JSON.stringify({ id, update }),
       });
-      const updated = await res.json();
-      setPrograms(prev => prev.map(p => p.id === id ? updated : p));
-      toast.success("Data berjaya dikemaskini");
+      
+      toast.success("Permintaan kemaskini dihantar. Sila tunggu beberapa saat untuk data dikemaskini.");
+      
+      // Tutup modal dan refresh data selepas delay pendek
       setIsModalOpen(false);
+      setTimeout(fetchPrograms, 3000);
     } catch (error) {
-      toast.error("Gagal mengemaskini data");
+      console.error("Update error:", error);
+      toast.error("Gagal menghantar data kemaskini");
     }
   };
 
