@@ -52,37 +52,56 @@ function doGet(e) {
 }
 
 /**
- * Mengemaskini data ke Google Sheet
+ * Mengemaskini atau menambah data ke Google Sheet
  */
 function doPost(e) {
   try {
     const postData = JSON.parse(e.postData.contents);
-    const id = postData.id;
-    const update = postData.update;
-    
     const ss = SpreadsheetApp.getActiveSpreadsheet();
     const sheet = ss.getSheetByName(SHEET_NAME);
+    
+    if (!sheet) {
+      throw new Error("Sheet '" + SHEET_NAME + "' tidak dijumpai.");
+    }
+    
     const data = sheet.getDataRange().getValues();
     const headers = data[0];
     
-    const rowIndex = parseInt(id); // ID is row index + 1
+    // Kes 1: Kemaskini (Update) - Jika ada ID
+    if (postData.id) {
+      const rowIndex = parseInt(postData.id);
+      const update = postData.update || postData; // Sokong kedua-dua format
+      
+      if (rowIndex > 0 && rowIndex < data.length) {
+        for (let key in update) {
+          if (key === 'id') continue;
+          const headerName = mapKeyToHeader(key);
+          const colIndex = headers.indexOf(headerName);
+          if (colIndex !== -1) {
+            sheet.getRange(rowIndex + 1, colIndex + 1).setValue(update[key]);
+          }
+        }
+        return ContentService.createTextOutput(JSON.stringify({ status: "success", message: "Data dikemaskini" }))
+          .setMimeType(ContentService.MimeType.JSON);
+      }
+      throw new Error("ID tidak dijumpai untuk kemaskini.");
+    } 
     
-    if (rowIndex > 0 && rowIndex < data.length) {
-      // Update specific columns based on the update object
-      for (let key in update) {
+    // Kes 2: Tambah Baru (Append) - Jika tiada ID
+    else {
+      const newRow = new Array(headers.length).fill("");
+      for (let key in postData) {
         const headerName = mapKeyToHeader(key);
         const colIndex = headers.indexOf(headerName);
         if (colIndex !== -1) {
-          sheet.getRange(rowIndex + 1, colIndex + 1).setValue(update[key]);
+          newRow[colIndex] = postData[key];
         }
       }
       
-      return ContentService.createTextOutput(JSON.stringify({ status: "success" }))
+      sheet.appendRow(newRow);
+      return ContentService.createTextOutput(JSON.stringify({ status: "success", message: "Laporan baru ditambah" }))
         .setMimeType(ContentService.MimeType.JSON);
     }
-    
-    return ContentService.createTextOutput(JSON.stringify({ status: "error", message: "ID not found" }))
-      .setMimeType(ContentService.MimeType.JSON);
       
   } catch (error) {
     return ContentService.createTextOutput(JSON.stringify({ status: "error", message: error.toString() }))

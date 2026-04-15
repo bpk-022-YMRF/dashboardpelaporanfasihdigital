@@ -61,7 +61,7 @@ const NEGERI_LIST = [
 ];
 
 // GANTIKAN URL INI DENGAN URL DARI GOOGLE APPS SCRIPT ANDA
-const GAS_URL = "https://script.google.com/macros/s/AKfycbzqL80ylcn8aYpyMAx3aIiFb0c4N51jBVrMBxnT07djSylFE3db4p0Ht0Khm3d7hYYw/exec";
+const GAS_URL = "https://script.google.com/macros/s/AKfycbwoFYkI71R_QNG-Gqg2PyTzTbHb5Xrk_dVLJN92EMh9txU45UMwF2_B0b5a664rztMz/exec";
 
 export default function App() {
   const [programs, setPrograms] = useState<ProgramData[]>([]);
