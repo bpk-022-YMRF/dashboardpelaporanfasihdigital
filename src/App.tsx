@@ -66,9 +66,9 @@ const GAS_URL = "https://script.google.com/macros/s/AKfycbwoFYkI71R_QNG-Gqg2PyTz
 export default function App() {
   const [programs, setPrograms] = useState<ProgramData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterNegeri, setFilterNegeri] = useState("all");
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState<ProgramUpdate>({
     negeri: "",
     namaProgram: "",
@@ -90,8 +90,11 @@ export default function App() {
     fetchPrograms();
   }, []);
 
-  const fetchPrograms = async () => {
+  const fetchPrograms = async (isRefresh = false) => {
     try {
+      if (isRefresh) setIsRefreshing(true);
+      else setLoading(true);
+
       // Tambah timestamp untuk elakkan caching
       const res = await fetch(`${GAS_URL}?t=${new Date().getTime()}`);
       const data = await res.json();
@@ -99,9 +102,7 @@ export default function App() {
       console.log("Data received:", data);
 
       if (Array.isArray(data)) {
-        console.log("Raw data from GAS:", data);
-        
-        // Helper to clean numeric strings (remove RM, commas, spaces)
+        // ... mapping logic ...
         const cleanNum = (val: any) => {
           if (val === undefined || val === null || val === "") return 0;
           if (typeof val === "number") return val;
@@ -110,7 +111,6 @@ export default function App() {
           return isNaN(num) ? 0 : num;
         };
 
-        // Map data with extremely robust key matching
         const mappedData = data
           .filter(item => item && typeof item === "object")
           .map((item, index) => {
@@ -122,9 +122,7 @@ export default function App() {
 
             const getVal = (search: string, fallback: any = "") => {
               const searchKey = search.toLowerCase().replace(/[\s_]/g, "");
-              // Try exact match first
               if (normalized[searchKey] !== undefined) return normalized[searchKey];
-              // Try partial match
               const key = Object.keys(normalized).find(k => k.includes(searchKey));
               return key !== undefined ? normalized[key] : fallback;
             };
@@ -162,6 +160,7 @@ export default function App() {
       toast.error(`Gagal berhubung dengan Google Sheets: ${error instanceof Error ? error.message : 'Ralat tidak diketahui'}`);
     } finally {
       setLoading(false);
+      setIsRefreshing(false);
     }
   };
 
@@ -181,7 +180,6 @@ export default function App() {
       });
       
       toast.success("Laporan berjaya dihantar!");
-      setIsModalOpen(false);
       setFormData({
         negeri: "",
         namaProgram: "",
@@ -338,7 +336,7 @@ export default function App() {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            {loading && programs.length > 0 && (
+            {isRefreshing && (
               <div className="flex items-center gap-2 px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-xs font-medium animate-pulse">
                 <RefreshCw size={12} className="animate-spin" />
                 Mengemaskini...
@@ -347,14 +345,11 @@ export default function App() {
             <Button 
               variant="outline" 
               size="sm" 
-              onClick={() => {
-                setLoading(true);
-                fetchPrograms();
-              }}
+              onClick={() => fetchPrograms(true)}
               className="bg-white gap-2"
-              disabled={loading}
+              disabled={isRefreshing || loading}
             >
-              <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
+              <RefreshCw size={16} className={isRefreshing ? "animate-spin" : ""} />
               Refresh Data
             </Button>
           </div>

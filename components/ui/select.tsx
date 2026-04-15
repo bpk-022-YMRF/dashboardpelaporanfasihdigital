@@ -66,6 +66,7 @@ function SelectValue({ placeholder }: { placeholder?: string }) {
 function SelectContent({ className, children }: { className?: string; children: React.ReactNode }) {
   const { open, setOpen, triggerRef } = React.useContext(SelectContext)
   const [coords, setCoords] = React.useState({ top: 0, left: 0, width: 0 })
+  const contentRef = React.useRef<HTMLDivElement>(null)
   
   React.useEffect(() => {
     if (open && triggerRef.current) {
@@ -81,7 +82,11 @@ function SelectContent({ className, children }: { className?: string; children: 
   React.useEffect(() => {
     if (!open) return
     const handleClickOutside = (e: MouseEvent) => {
-      if (triggerRef.current && !triggerRef.current.contains(e.target as Node)) {
+      const target = e.target as Node
+      const isInsideTrigger = triggerRef.current?.contains(target)
+      const isInsideContent = contentRef.current?.contains(target)
+      
+      if (!isInsideTrigger && !isInsideContent) {
         setOpen(false)
       }
     }
@@ -93,6 +98,7 @@ function SelectContent({ className, children }: { className?: string; children: 
 
   return createPortal(
     <div
+      ref={contentRef}
       style={{
         position: 'fixed',
         top: coords.top,
