@@ -338,7 +338,10 @@ export default function App() {
           </div>
           <div className="flex items-center gap-3">
             <Button 
-              onClick={() => setIsModalOpen(true)}
+              onClick={() => {
+                console.log("Tambah Laporan button clicked");
+                setIsModalOpen(true);
+              }}
               className="bg-blue-600 hover:bg-blue-700 text-white gap-2 shadow-md"
             >
               <Plus size={18} />

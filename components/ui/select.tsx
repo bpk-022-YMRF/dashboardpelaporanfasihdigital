@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { createPortal } from "react-dom"
 import { ChevronDown, Check } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -15,18 +16,21 @@ const SelectContext = React.createContext<{
   onValueChange: (value: string) => void
   open: boolean
   setOpen: (open: boolean) => void
+  triggerRef: React.RefObject<HTMLButtonElement | null>
 }>({
   value: "",
   onValueChange: () => {},
   open: false,
   setOpen: () => {},
+  triggerRef: { current: null }
 })
 
 function Select({ value = "", onValueChange = () => {}, children }: SelectProps) {
   const [open, setOpen] = React.useState(false)
+  const triggerRef = React.useRef<HTMLButtonElement>(null)
   
   return (
-    <SelectContext.Provider value={{ value, onValueChange, open, setOpen }}>
+    <SelectContext.Provider value={{ value, onValueChange, open, setOpen, triggerRef }}>
       <div className="relative w-full">
         {children}
       </div>
@@ -35,10 +39,11 @@ function Select({ value = "", onValueChange = () => {}, children }: SelectProps)
 }
 
 function SelectTrigger({ className, children, ...props }: React.ComponentProps<"button">) {
-  const { open, setOpen } = React.useContext(SelectContext)
+  const { open, setOpen, triggerRef } = React.useContext(SelectContext)
   
   return (
     <button
+      ref={triggerRef}
       type="button"
       onClick={() => setOpen(!open)}
       className={cn(
@@ -59,30 +64,49 @@ function SelectValue({ placeholder }: { placeholder?: string }) {
 }
 
 function SelectContent({ className, children }: { className?: string; children: React.ReactNode }) {
-  const { open, setOpen } = React.useContext(SelectContext)
+  const { open, setOpen, triggerRef } = React.useContext(SelectContext)
+  const [coords, setCoords] = React.useState({ top: 0, left: 0, width: 0 })
   
+  React.useEffect(() => {
+    if (open && triggerRef.current) {
+      const rect = triggerRef.current.getBoundingClientRect()
+      setCoords({
+        top: rect.bottom,
+        left: rect.left,
+        width: rect.width
+      })
+    }
+  }, [open, triggerRef])
+
   React.useEffect(() => {
     if (!open) return
     const handleClickOutside = (e: MouseEvent) => {
-      if (!(e.target as HTMLElement).closest(".relative")) {
+      if (triggerRef.current && !triggerRef.current.contains(e.target as Node)) {
         setOpen(false)
       }
     }
     document.addEventListener("mousedown", handleClickOutside)
     return () => document.removeEventListener("mousedown", handleClickOutside)
-  }, [open, setOpen])
+  }, [open, setOpen, triggerRef])
 
   if (!open) return null
 
-  return (
+  return createPortal(
     <div
+      style={{
+        position: 'fixed',
+        top: coords.top,
+        left: coords.left,
+        width: coords.width,
+      }}
       className={cn(
-        "absolute top-full left-0 z-[110] mt-1 max-h-60 w-full overflow-auto rounded-md border border-slate-200 bg-white p-1 text-slate-900 shadow-xl ring-1 ring-black/5",
+        "z-[2000] mt-1 max-h-60 overflow-auto rounded-md border border-slate-200 bg-white p-1 text-slate-900 shadow-xl ring-1 ring-black/5",
         className
       )}
     >
       {children}
-    </div>
+    </div>,
+    document.body
   )
 }
 
