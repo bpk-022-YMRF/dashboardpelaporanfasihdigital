@@ -35,7 +35,6 @@ import {
   Pie,
   Legend
 } from "recharts";
-import { motion, AnimatePresence } from "motion/react";
 import { cn } from "@/lib/utils";
 import { jsPDF } from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -366,210 +365,203 @@ export default function App() {
           </div>
         </header>
 
-        <AnimatePresence>
-          {isModalOpen && (
-            <motion.div
-              initial={{ height: 0, opacity: 0, marginBottom: 0 }}
-              animate={{ height: "auto", opacity: 1, marginBottom: 32 }}
-              exit={{ height: 0, opacity: 0, marginBottom: 0 }}
-              className="overflow-hidden"
-            >
-              <Card className="border-none shadow-md bg-white">
-                <CardHeader className="border-b border-slate-100 flex flex-row items-center justify-between">
-                  <div>
-                    <CardTitle className="text-xl font-bold text-slate-800">Borang Pelaporan Program & Waran</CardTitle>
-                    <CardDescription>Sila isi maklumat pelaksanaan program dan perbelanjaan waran dengan tepat.</CardDescription>
-                  </div>
-                  <Button variant="ghost" size="icon" onClick={() => setIsModalOpen(false)} className="text-slate-400">
-                    <X size={20} />
-                  </Button>
-                </CardHeader>
-                
-                <CardContent className="pt-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div className="space-y-6">
-                      <div className="flex items-center gap-2 pb-2 border-b border-slate-50">
-                        <div className="w-1 h-4 bg-blue-600 rounded-full" />
-                        <h4 className="text-sm font-bold text-slate-700 uppercase tracking-wider">Maklumat Asas</h4>
+        {isModalOpen && (
+          <div className="mb-8">
+            <Card className="border-none shadow-md bg-white">
+              <CardHeader className="border-b border-slate-100 flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle className="text-xl font-bold text-slate-800">Borang Pelaporan Program & Waran</CardTitle>
+                  <CardDescription>Sila isi maklumat pelaksanaan program dan perbelanjaan waran dengan tepat.</CardDescription>
+                </div>
+                <Button variant="ghost" size="icon" onClick={() => setIsModalOpen(false)} className="text-slate-400">
+                  <X size={20} />
+                </Button>
+              </CardHeader>
+              
+              <CardContent className="pt-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="space-y-6">
+                    <div className="flex items-center gap-2 pb-2 border-b border-slate-50">
+                      <div className="w-1 h-4 bg-blue-600 rounded-full" />
+                      <h4 className="text-sm font-bold text-slate-700 uppercase tracking-wider">Maklumat Asas</h4>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 gap-4">
+                      <div className="space-y-2">
+                        <Label className="text-slate-600">Negeri</Label>
+                        <Select 
+                          value={formData.negeri} 
+                          onValueChange={(v) => setFormData({...formData, negeri: v})}
+                        >
+                          <SelectTrigger className="bg-slate-50/50 border-slate-200">
+                            <SelectValue placeholder="Pilih Negeri" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {NEGERI_LIST.map(n => (
+                              <SelectItem key={n} value={n}>{n}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </div>
                       
-                      <div className="grid grid-cols-1 gap-4">
-                        <div className="space-y-2">
-                          <Label className="text-slate-600">Negeri</Label>
-                          <Select 
-                            value={formData.negeri} 
-                            onValueChange={(v) => setFormData({...formData, negeri: v})}
-                          >
-                            <SelectTrigger className="bg-slate-50/50 border-slate-200">
-                              <SelectValue placeholder="Pilih Negeri" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {NEGERI_LIST.map(n => (
-                                <SelectItem key={n} value={n}>{n}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        
-                        <div className="space-y-2">
-                          <Label className="text-slate-600">Nama Program</Label>
-                          <Input 
-                            placeholder="Masukkan nama program" 
-                            value={formData.namaProgram}
-                            onChange={(e) => setFormData({...formData, namaProgram: e.target.value})}
-                            className="bg-slate-50/50 border-slate-200"
-                          />
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <Label className="text-slate-600">Tarikh Mula</Label>
-                            <Input 
-                              type="date" 
-                              value={formData.tarikhMula}
-                              onChange={(e) => setFormData({...formData, tarikhMula: e.target.value})}
-                              className="bg-slate-50/50 border-slate-200"
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label className="text-slate-600">Tarikh Tamat</Label>
-                            <Input 
-                              type="date" 
-                              value={formData.tarikhTamat}
-                              onChange={(e) => setFormData({...formData, tarikhTamat: e.target.value})}
-                              className="bg-slate-50/50 border-slate-200"
-                            />
-                          </div>
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label className="text-slate-600">Lokasi Bengkel</Label>
-                          <Input 
-                            placeholder="Contoh: Hotel Grand Continental" 
-                            value={formData.lokasi}
-                            onChange={(e) => setFormData({...formData, lokasi: e.target.value})}
-                            className="bg-slate-50/50 border-slate-200"
-                          />
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4">
-                          <div className="space-y-2">
-                            <Label className="text-slate-600">Bilangan Peserta</Label>
-                            <Input 
-                              type="number" 
-                              value={formData.bilanganPeserta}
-                              onChange={(e) => setFormData({...formData, bilanganPeserta: parseInt(e.target.value.toString()) || 0})}
-                              className="bg-slate-50/50 border-slate-200"
-                            />
-                          </div>
-                          <div className="space-y-2">
-                            <Label className="text-slate-600">Pautan Gambar (Drive/URL)</Label>
-                            <Input 
-                              placeholder="https://..." 
-                              value={formData.pautanGambar}
-                              onChange={(e) => setFormData({...formData, pautanGambar: e.target.value})}
-                              className="bg-slate-50/50 border-slate-200"
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="space-y-6">
-                      <div className="flex items-center gap-2 pb-2 border-b border-slate-50">
-                        <div className="w-1 h-4 bg-emerald-600 rounded-full" />
-                        <h4 className="text-sm font-bold text-slate-700 uppercase tracking-wider">Perbelanjaan Waran (Guna)</h4>
+                      <div className="space-y-2">
+                        <Label className="text-slate-600">Nama Program</Label>
+                        <Input 
+                          placeholder="Masukkan nama program" 
+                          value={formData.namaProgram}
+                          onChange={(e) => setFormData({...formData, namaProgram: e.target.value})}
+                          className="bg-slate-50/50 border-slate-200"
+                        />
                       </div>
 
                       <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
-                          <Label className="text-slate-600">OS21000 (RM)</Label>
+                          <Label className="text-slate-600">Tarikh Mula</Label>
                           <Input 
-                            type="number" 
-                            value={formData.gunaOs21000}
-                            onChange={(e) => setFormData({...formData, gunaOs21000: parseFloat(e.target.value) || 0})}
+                            type="date" 
+                            value={formData.tarikhMula}
+                            onChange={(e) => setFormData({...formData, tarikhMula: e.target.value})}
                             className="bg-slate-50/50 border-slate-200"
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label className="text-slate-600">OS24000 (RM)</Label>
+                          <Label className="text-slate-600">Tarikh Tamat</Label>
                           <Input 
-                            type="number" 
-                            value={formData.gunaOs24000}
-                            onChange={(e) => setFormData({...formData, gunaOs24000: parseFloat(e.target.value) || 0})}
-                            className="bg-slate-50/50 border-slate-200"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label className="text-slate-600">OS29000 (RM)</Label>
-                          <Input 
-                            type="number" 
-                            value={formData.gunaOs29000}
-                            onChange={(e) => setFormData({...formData, gunaOs29000: parseFloat(e.target.value) || 0})}
-                            className="bg-slate-50/50 border-slate-200"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label className="text-slate-600">OS42000 (RM)</Label>
-                          <Input 
-                            type="number" 
-                            value={formData.gunaOs42000}
-                            onChange={(e) => setFormData({...formData, gunaOs42000: parseFloat(e.target.value) || 0})}
+                            type="date" 
+                            value={formData.tarikhTamat}
+                            onChange={(e) => setFormData({...formData, tarikhTamat: e.target.value})}
                             className="bg-slate-50/50 border-slate-200"
                           />
                         </div>
                       </div>
 
-                      <div className="p-6 bg-blue-50/50 rounded-xl border border-blue-100 flex flex-col items-center justify-center text-center">
-                        <p className="text-xs font-bold text-blue-400 uppercase tracking-widest mb-1">Jumlah Keseluruhan Guna</p>
-                        <p className="text-3xl font-black text-blue-600">
-                          RM {(Number(formData.gunaOs21000) + Number(formData.gunaOs24000) + Number(formData.gunaOs29000) + Number(formData.gunaOs42000)).toLocaleString()}
-                        </p>
+                      <div className="space-y-2">
+                        <Label className="text-slate-600">Lokasi Bengkel</Label>
+                        <Input 
+                          placeholder="Contoh: Hotel Grand Continental" 
+                          value={formData.lokasi}
+                          onChange={(e) => setFormData({...formData, lokasi: e.target.value})}
+                          className="bg-slate-50/50 border-slate-200"
+                        />
                       </div>
-                    </div>
 
-                    <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="space-y-2">
-                        <Label className="text-slate-600">Impak / Output / Hasil Program</Label>
-                        <textarea 
-                          className="w-full min-h-[120px] p-4 rounded-xl border border-slate-200 bg-slate-50/50 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all"
-                          placeholder="Nyatakan impak program..."
-                          value={formData.impak}
-                          onChange={(e) => setFormData({...formData, impak: e.target.value})}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label className="text-slate-600">Cadangan Penambahbaikan</Label>
-                        <textarea 
-                          className="w-full min-h-[120px] p-4 rounded-xl border border-slate-200 bg-slate-50/50 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all"
-                          placeholder="Nyatakan cadangan..."
-                          value={formData.cadangan}
-                          onChange={(e) => setFormData({...formData, cadangan: e.target.value})}
-                        />
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label className="text-slate-600">Bilangan Peserta</Label>
+                          <Input 
+                            type="number" 
+                            value={formData.bilanganPeserta}
+                            onChange={(e) => setFormData({...formData, bilanganPeserta: parseInt(e.target.value.toString()) || 0})}
+                            className="bg-slate-50/50 border-slate-200"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label className="text-slate-600">Pautan Gambar (Drive/URL)</Label>
+                          <Input 
+                            placeholder="https://..." 
+                            value={formData.pautanGambar}
+                            onChange={(e) => setFormData({...formData, pautanGambar: e.target.value})}
+                            className="bg-slate-50/50 border-slate-200"
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>
-                </CardContent>
 
-                <div className="p-6 border-t border-slate-100 bg-slate-50/30 flex justify-end gap-3">
-                  <Button variant="outline" onClick={() => setIsModalOpen(false)} className="rounded-lg">Batal</Button>
-                  <Button 
-                    onClick={handleSubmit}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-8 rounded-lg shadow-lg shadow-blue-200"
-                    disabled={loading}
-                  >
-                    {loading ? (
-                      <div className="flex items-center gap-2">
-                        <RefreshCw size={16} className="animate-spin" />
-                        Menghantar...
+                  <div className="space-y-6">
+                    <div className="flex items-center gap-2 pb-2 border-b border-slate-50">
+                      <div className="w-1 h-4 bg-emerald-600 rounded-full" />
+                      <h4 className="text-sm font-bold text-slate-700 uppercase tracking-wider">Perbelanjaan Waran (Guna)</h4>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label className="text-slate-600">OS21000 (RM)</Label>
+                        <Input 
+                          type="number" 
+                          value={formData.gunaOs21000}
+                          onChange={(e) => setFormData({...formData, gunaOs21000: parseFloat(e.target.value) || 0})}
+                          className="bg-slate-50/50 border-slate-200"
+                        />
                       </div>
-                    ) : "Simpan Laporan"}
-                  </Button>
+                      <div className="space-y-2">
+                        <Label className="text-slate-600">OS24000 (RM)</Label>
+                        <Input 
+                          type="number" 
+                          value={formData.gunaOs24000}
+                          onChange={(e) => setFormData({...formData, gunaOs24000: parseFloat(e.target.value) || 0})}
+                          className="bg-slate-50/50 border-slate-200"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-slate-600">OS29000 (RM)</Label>
+                        <Input 
+                          type="number" 
+                          value={formData.gunaOs29000}
+                          onChange={(e) => setFormData({...formData, gunaOs29000: parseFloat(e.target.value) || 0})}
+                          className="bg-slate-50/50 border-slate-200"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-slate-600">OS42000 (RM)</Label>
+                        <Input 
+                          type="number" 
+                          value={formData.gunaOs42000}
+                          onChange={(e) => setFormData({...formData, gunaOs42000: parseFloat(e.target.value) || 0})}
+                          className="bg-slate-50/50 border-slate-200"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="p-6 bg-blue-50/50 rounded-xl border border-blue-100 flex flex-col items-center justify-center text-center">
+                      <p className="text-xs font-bold text-blue-400 uppercase tracking-widest mb-1">Jumlah Keseluruhan Guna</p>
+                      <p className="text-3xl font-black text-blue-600">
+                        RM {(Number(formData.gunaOs21000) + Number(formData.gunaOs24000) + Number(formData.gunaOs29000) + Number(formData.gunaOs42000)).toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                      <Label className="text-slate-600">Impak / Output / Hasil Program</Label>
+                      <textarea 
+                        className="w-full min-h-[120px] p-4 rounded-xl border border-slate-200 bg-slate-50/50 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                        placeholder="Nyatakan impak program..."
+                        value={formData.impak}
+                        onChange={(e) => setFormData({...formData, impak: e.target.value})}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-slate-600">Cadangan Penambahbaikan</Label>
+                      <textarea 
+                        className="w-full min-h-[120px] p-4 rounded-xl border border-slate-200 bg-slate-50/50 text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                        placeholder="Nyatakan cadangan..."
+                        value={formData.cadangan}
+                        onChange={(e) => setFormData({...formData, cadangan: e.target.value})}
+                      />
+                    </div>
+                  </div>
                 </div>
-              </Card>
-            </motion.div>
-          )}
-        </AnimatePresence>
+              </CardContent>
+
+              <div className="p-6 border-t border-slate-100 bg-slate-50/30 flex justify-end gap-3">
+                <Button variant="outline" onClick={() => setIsModalOpen(false)} className="rounded-lg">Batal</Button>
+                <Button 
+                  onClick={handleSubmit}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-8 rounded-lg shadow-lg shadow-blue-200"
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <div className="flex items-center gap-2">
+                      <RefreshCw size={16} className="animate-spin" />
+                      Menghantar...
+                    </div>
+                  ) : "Simpan Laporan"}
+                </Button>
+              </div>
+            </Card>
+          </div>
+        )}
 
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
