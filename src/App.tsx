@@ -86,6 +86,7 @@ export default function App() {
   });
 
   useEffect(() => {
+    console.log("App version: 2026-04-15 16:30 (Fixed Dialog)");
     fetchPrograms();
   }, []);
 
